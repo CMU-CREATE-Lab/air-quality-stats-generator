@@ -1,8 +1,10 @@
+var path = require('path');
+
 const ESDR_API_ROOT_URL = "http://esdr.cmucreatelab.org/api/v1";
 const ESDR_QUERY_ITEM_LIMIT = 1000;
 
-const DATA_DIRECTORY = "./data";
-const STATS_DIRECTORY = "./stats";
+const DATA_DIRECTORY = path.join(__dirname, 'data');
+const STATS_DIRECTORY = path.join(__dirname, 'stats');
 
 const DAILY_MAX_CHANNEL_NAME_SUFFIX = "_daily_max";
 const DAILY_MEAN_CHANNEL_NAME_SUFFIX = "_daily_mean";
