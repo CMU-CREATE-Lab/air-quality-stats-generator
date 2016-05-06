@@ -44,8 +44,7 @@ function FeedImporter(config) {
          var commands = [];
          files.forEach(function(filename) {
             var suffixPosition = filename.indexOf('.json');
-            // TODO: remove feed ID filter
-            if (suffixPosition > 0 && (filename == '26.json' || filename == '29.json' || filename == '4231.json')) {
+            if (suffixPosition > 0) {
                var feedId = filename.substr(0, suffixPosition);
                commands.push(function(done) {
                   fs.readFile(path.join(Common.STATS_DIRECTORY, filename), 'utf8', function(err, statsJson) {

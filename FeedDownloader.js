@@ -51,8 +51,7 @@ function FeedDownloader() {
                }
             }
 
-            // TODO: remove feed ID filter
-            if (channelsToExport.length > 0 && (feed.id == 26 || feed.id == 29 || feed.id == 4231)) {
+            if (channelsToExport.length > 0) {
                exportCommands.push(function(done) {
                   exportFeedChannels(feed, channelsToExport, startDateUnixTimeSecs, done);
                });

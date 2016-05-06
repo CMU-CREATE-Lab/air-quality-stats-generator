@@ -27,8 +27,7 @@ function StatsGenerator() {
 
             var commands = [];
             files.forEach(function(filename) {
-               // TODO: remove feed ID filter
-               if (filename.indexOf('.json') > 0 && (filename == '26.json' || filename == '29.json' || filename == '4231.json')) {
+               if (filename.indexOf('.json') > 0) {
                   commands.push(function(done) {
                      console.log("Reading " + filename);
                      fs.readFile(path.join(Common.DATA_DIRECTORY, filename), 'utf8', function(err, feedJson) {
