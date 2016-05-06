@@ -18,6 +18,7 @@
   "homepage": "https://github.com/CMU-CREATE-Lab/air-quality-stats-generator",
   "dependencies": {
     "bodytrack-datastore": "^2.6.0",
+    "commander": "^2.9.0",
     "mkdirp": "^0.5.1",
     "nconf": "^0.8.4",
     "nimble": "0.0.2",
