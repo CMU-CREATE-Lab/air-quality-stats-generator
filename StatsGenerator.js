@@ -57,87 +57,93 @@ function StatsGenerator() {
       // start by reading all the data into an array
       readFeedData(feed, function(feedData) {
 
-         // start by getting the year of the earliest record, then we'll iterate over the years until (and including)
-         // the current year
-         var startingYear = new Date(feedData.data[0].unixTimeMillis).getUTCFullYear();
-         var endingYear = new Date().getUTCFullYear();
-         console.log("   Year range: " + startingYear  + " - " + endingYear);
+         // make sure there's actually data
+         if (feedData.data.length > 0) {
+            // start by getting the year of the earliest record, then we'll iterate over the years until (and including)
+            // the current year
+            var startingYear = new Date(feedData.data[0].unixTimeMillis).getUTCFullYear();
+            var endingYear = new Date().getUTCFullYear();
+            console.log("   Year range: " + startingYear + " - " + endingYear);
 
-         var recordIndex = 0;
-         var json = { channel_names : [], data : [] };
+            var recordIndex = 0;
+            var json = { channel_names : [], data : [] };
 
-         // write the channel names to the stats object
-         for (var i = 1; i <= Object.keys(feedData.channelNames).length; i++) {
-            json.channel_names.push(feedData.channelNames[i] + Common.DAILY_MAX_CHANNEL_NAME_SUFFIX);
-            json.channel_names.push(feedData.channelNames[i] + Common.DAILY_MEAN_CHANNEL_NAME_SUFFIX);
-            json.channel_names.push(feedData.channelNames[i] + Common.DAILY_MEDIAN_CHANNEL_NAME_SUFFIX);
-         }
-
-         // now iterate over each day of each year, and pick out data samples from feedData to compute max, average, and median
-         for (var year = startingYear; year <= endingYear; year++) {
-            console.log("   Processing year " + year);
-            var dayNum = 0;
-            var currentDayUtc = null;
-            do {
-               dayNum++;
-               currentDayUtc = {
-                  start : new Date(Date.UTC(year, 0, dayNum)),
-                  noon : new Date(Date.UTC(year, 0, dayNum, 12, 0, 0, 0)),
-                  end : new Date(Date.UTC(year, 0, dayNum + 1))
-               };
-
-               // compute the timezone offset for the start and end times
-               var startTimeOffset = tzwhere.tzOffsetAt(feed.latitude, feed.longitude,
-                                                        currentDayUtc.start.getUTCFullYear(),
-                                                        currentDayUtc.start.getUTCMonth(),
-                                                        currentDayUtc.start.getUTCDate());
-               var noonTimeOffset = tzwhere.tzOffsetAt(feed.latitude, feed.longitude,
-                                                       currentDayUtc.noon.getUTCFullYear(),
-                                                       currentDayUtc.noon.getUTCMonth(),
-                                                       currentDayUtc.noon.getUTCDate(), 12, 0, 0);
-               var endTimeOffset = tzwhere.tzOffsetAt(feed.latitude, feed.longitude,
-                                                      currentDayUtc.end.getUTCFullYear(),
-                                                      currentDayUtc.end.getUTCMonth(),
-                                                      currentDayUtc.end.getUTCDate());
-
-               var currentDayLocal = {
-                  startMillis : currentDayUtc.start.getTime() - startTimeOffset,
-                  noonMillis : currentDayUtc.noon.getTime() - noonTimeOffset,
-                  endMillis : currentDayUtc.end.getTime() - endTimeOffset
-               };
-
-               // gather up the records for the current day
-               var recordsForCurrentDay = [];
-               while (recordIndex < feedData.data.length &&
-                      feedData.data[recordIndex].unixTimeMillis >= currentDayLocal.startMillis &&
-                      feedData.data[recordIndex].unixTimeMillis < currentDayLocal.endMillis) {
-                  recordsForCurrentDay.push(feedData.data[recordIndex]);
-                  recordIndex++;
-               }
-
-               // see if this day has any records and, if so, compute the stats
-               if (recordsForCurrentDay.length > 0) {
-                  // console.log("Records for day: " + currentDayUtc.start.toUTCString() + " - " + currentDayUtc.end.toUTCString() + ": " + recordsForCurrentDay.length);
-
-                  var stats = computeStatsForDay(currentDayLocal.noonMillis, recordsForCurrentDay);
-
-                  json.data.push(stats);
-               }
-               else {
-                  // no records for this day, so there's nothing to do
-                  // console.log("Skipping day: " + currentDayUtc.start.toUTCString() + " - " + currentDayUtc.end.toUTCString());
-               }
-
-               // var diffHours = (currentDayLocal.endMillis - currentDayLocal.startMillis) / 3600 / 1000;
-               // console.log(currentDayUtc.start.toUTCString() + " - " + currentDayUtc.end.toUTCString() + " : [" + currentDayLocal.startMillis + "] - [" + currentDayLocal.endMillis + "] --> [" + diffHours + "]");
+            // write the channel names to the stats object
+            for (var i = 1; i <= Object.keys(feedData.channelNames).length; i++) {
+               json.channel_names.push(feedData.channelNames[i] + Common.DAILY_MAX_CHANNEL_NAME_SUFFIX);
+               json.channel_names.push(feedData.channelNames[i] + Common.DAILY_MEAN_CHANNEL_NAME_SUFFIX);
+               json.channel_names.push(feedData.channelNames[i] + Common.DAILY_MEDIAN_CHANNEL_NAME_SUFFIX);
             }
-            while (currentDayUtc.end.getUTCFullYear() == year);
-         }
 
-         var filePath = path.join(Common.STATS_DIRECTORY, feed.id + ".json");
-         fs.writeFile(filePath, JSON.stringify(json, null, 1), function(err) {
-            callback(err, !!err);
-         });
+            // now iterate over each day of each year, and pick out data samples from feedData to compute max, average, and median
+            for (var year = startingYear; year <= endingYear; year++) {
+               console.log("   Processing year " + year);
+               var dayNum = 0;
+               var currentDayUtc = null;
+               do {
+                  dayNum++;
+                  currentDayUtc = {
+                     start : new Date(Date.UTC(year, 0, dayNum)),
+                     noon : new Date(Date.UTC(year, 0, dayNum, 12, 0, 0, 0)),
+                     end : new Date(Date.UTC(year, 0, dayNum + 1))
+                  };
+
+                  // compute the timezone offset for the start and end times
+                  var startTimeOffset = tzwhere.tzOffsetAt(feed.latitude, feed.longitude,
+                                                           currentDayUtc.start.getUTCFullYear(),
+                                                           currentDayUtc.start.getUTCMonth(),
+                                                           currentDayUtc.start.getUTCDate());
+                  var noonTimeOffset = tzwhere.tzOffsetAt(feed.latitude, feed.longitude,
+                                                          currentDayUtc.noon.getUTCFullYear(),
+                                                          currentDayUtc.noon.getUTCMonth(),
+                                                          currentDayUtc.noon.getUTCDate(), 12, 0, 0);
+                  var endTimeOffset = tzwhere.tzOffsetAt(feed.latitude, feed.longitude,
+                                                         currentDayUtc.end.getUTCFullYear(),
+                                                         currentDayUtc.end.getUTCMonth(),
+                                                         currentDayUtc.end.getUTCDate());
+
+                  var currentDayLocal = {
+                     startMillis : currentDayUtc.start.getTime() - startTimeOffset,
+                     noonMillis : currentDayUtc.noon.getTime() - noonTimeOffset,
+                     endMillis : currentDayUtc.end.getTime() - endTimeOffset
+                  };
+
+                  // gather up the records for the current day
+                  var recordsForCurrentDay = [];
+                  while (recordIndex < feedData.data.length &&
+                         feedData.data[recordIndex].unixTimeMillis >= currentDayLocal.startMillis &&
+                         feedData.data[recordIndex].unixTimeMillis < currentDayLocal.endMillis) {
+                     recordsForCurrentDay.push(feedData.data[recordIndex]);
+                     recordIndex++;
+                  }
+
+                  // see if this day has any records and, if so, compute the stats
+                  if (recordsForCurrentDay.length > 0) {
+                     // console.log("Records for day: " + currentDayUtc.start.toUTCString() + " - " + currentDayUtc.end.toUTCString() + ": " + recordsForCurrentDay.length);
+
+                     var stats = computeStatsForDay(currentDayLocal.noonMillis, recordsForCurrentDay);
+
+                     json.data.push(stats);
+                  }
+                  else {
+                     // no records for this day, so there's nothing to do
+                     // console.log("Skipping day: " + currentDayUtc.start.toUTCString() + " - " + currentDayUtc.end.toUTCString());
+                  }
+
+                  // var diffHours = (currentDayLocal.endMillis - currentDayLocal.startMillis) / 3600 / 1000;
+                  // console.log(currentDayUtc.start.toUTCString() + " - " + currentDayUtc.end.toUTCString() + " : [" + currentDayLocal.startMillis + "] - [" + currentDayLocal.endMillis + "] --> [" + diffHours + "]");
+               }
+               while (currentDayUtc.end.getUTCFullYear() == year);
+            }
+
+            var filePath = path.join(Common.STATS_DIRECTORY, feed.id + ".json");
+            fs.writeFile(filePath, JSON.stringify(json, null, 1), function(err) {
+               callback(err, !!err);
+            });
+         } else {
+            console.log("   No data found, skipping stats generation");
+            callback(null, true);
+         }
       });
    };
 
