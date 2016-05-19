@@ -8,21 +8,21 @@ var config = require('./config');
 var pjson = require('./package.json');
 var Common = require('./Common.js');
 var path = require('path');
-var program = require('commander');
-program
+var programOptions = require('commander');
+programOptions
       .version(pjson.version)
       .option('-d, --days <N>', 'Compute stats for the past N days', parseInt)
       .parse(process.argv);
 
 // validate the days param (if specified at all)
-if (typeof program.days === 'undefined' || (program.days != null && program.days > 0)) {
+if (typeof programOptions.days === 'undefined' || (programOptions.days != null && programOptions.days > 0)) {
    var startDateUnixTimeSecs = null;
 
-   // if the user specified the days param, then compute the starting date in Unix time secs
-   if (typeof program.days !== 'undefined') {
+   // if the user specified the days param, then compute the starting date in UTC and then convert to Unix time secs
+   if (typeof programOptions.days !== 'undefined') {
       var today = new Date();
       today.setUTCHours(0, 0, 0, 0);
-      today.setUTCDate(today.getUTCDate() - program.days);
+      today.setUTCDate(today.getUTCDate() - programOptions.days);
       startDateUnixTimeSecs = today.getTime() / 1000;
    }
 
