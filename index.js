@@ -16,14 +16,14 @@ programOptions
 
 // validate the days param (if specified at all)
 if (typeof programOptions.days === 'undefined' || (programOptions.days != null && programOptions.days > 0)) {
-   var startDateUnixTimeSecs = null;
+   var startDateUtcUnixTimeSecs = null;
 
    // if the user specified the days param, then compute the starting date in UTC and then convert to Unix time secs
    if (typeof programOptions.days !== 'undefined') {
       var today = new Date();
       today.setUTCHours(0, 0, 0, 0);
       today.setUTCDate(today.getUTCDate() - programOptions.days);
-      startDateUnixTimeSecs = today.getTime() / 1000;
+      startDateUtcUnixTimeSecs = today.getTime() / 1000;
    }
 
    // delete any existing data and stats directories
@@ -40,10 +40,16 @@ if (typeof programOptions.days === 'undefined' || (programOptions.days != null &
             process.exit(1);
          }
 
+         // load and initialize the timezone lib
+         var tzwhere = require('tzwhere');
+         console.log("Initializing timezone library...");
+         tzwhere.init();
+         console.log("Timezone library initialization complete.");
+         
          // Start the downloader
          var FeedDownloader = require('./FeedDownloader');
-         var downloader = new FeedDownloader();
-         downloader.download(startDateUnixTimeSecs, function(err, results) {
+         var downloader = new FeedDownloader(tzwhere);
+         downloader.download(startDateUtcUnixTimeSecs, function(err, results) {
             if (err) {
                console.log(err);
             }
@@ -52,7 +58,7 @@ if (typeof programOptions.days === 'undefined' || (programOptions.days != null &
 
                // Start the stats generator
                var StatsGenerator = require('./StatsGenerator');
-               var statsGenerator = new StatsGenerator();
+               var statsGenerator = new StatsGenerator(tzwhere);
                statsGenerator.generate(function(err, results) {
                   if (err) {
                      console.log(err);

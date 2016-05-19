@@ -12,8 +12,8 @@ const GOVT_PM_2_5_CHANNEL_NAMES = [
    "PM25_UG_M3"
 ];
 
-function FeedDownloader() {
-   this.download = function(startDateUnixTimeSecs, callback) {
+function FeedDownloader(tzwhere) {
+   this.download = function(startDateUtcUnixTimeSecs, callback) {
       mkdirp(Common.DATA_DIRECTORY, function(err) {
          if (err) {
             console.log("ERROR: failed to create data directory [" + Common.DATA_DIRECTORY + "]. Aborting.");
@@ -33,15 +33,16 @@ function FeedDownloader() {
                      console.log("Downloaded [" + feeds.length + "] feeds. ");
 
                      // Now export the feed data
-                     exportFeeds(feeds, startDateUnixTimeSecs, callback);
+                     exportFeeds(feeds, startDateUtcUnixTimeSecs, callback);
                   }
                });
       });
    };
 
-   var exportFeeds = function(feeds, startDateUnixTimeSecs, callback) {
+   var exportFeeds = function(feeds, startDateUtcUnixTimeSecs, callback) {
       if (Array.isArray(feeds) && feeds.length > 0) {
          var exportCommands = [];
+         var startDateUtc = startDateUtcUnixTimeSecs ? new Date(startDateUtcUnixTimeSecs * 1000) : null;
          feeds.forEach(function(feed) {
             var channelsToExport = [];
             for (var i = 0; i < GOVT_PM_2_5_CHANNEL_NAMES.length; i++) {
@@ -53,7 +54,7 @@ function FeedDownloader() {
 
             if (channelsToExport.length > 0) {
                exportCommands.push(function(done) {
-                  exportFeedChannels(feed, channelsToExport, startDateUnixTimeSecs, done);
+                  exportFeedChannels(feed, channelsToExport, startDateUtc, done);
                });
             }
          });
@@ -66,11 +67,25 @@ function FeedDownloader() {
       }
    };
 
-   var exportFeedChannels = function(feed, channelsToExport, startDateUnixTimeSecs, done) {
-      startDateUnixTimeSecs = startDateUnixTimeSecs || 0;   // assume we won't have data before the epoch
+   var exportFeedChannels = function(feed, channelsToExport, startDateUtc, done) {
+      var startDateLocalUnixTimeSecs;
+
+      if (typeof startDateUtc === 'undefined' || startDateUtc == null) {
+         startDateLocalUnixTimeSecs = 0;    // assume we won't have data before the epoch
+      }
+      else {
+         // if defined, then startDateUtcUnixTimeSecs will specify midnight of a particular UTC date. We need to compute
+         // the time zone offset for the given feed, and apply that to the startDateUtcUnixTimeSecs
+         var timeOffset = tzwhere.tzOffsetAt(feed.latitude, feed.longitude,
+                                             startDateUtc.getUTCFullYear(),
+                                             startDateUtc.getUTCMonth(),
+                                             startDateUtc.getUTCDate(), 0, 0, 0);
+
+         startDateLocalUnixTimeSecs = (startDateUtc.getTime() - timeOffset) / 1000;
+      }
 
       superagent
-            .get(Common.ESDR_API_ROOT_URL + "/feeds/" + feed.id + "/channels/" + channelsToExport.join(',') + "/export?from=" + startDateUnixTimeSecs)
+            .get(Common.ESDR_API_ROOT_URL + "/feeds/" + feed.id + "/channels/" + channelsToExport.join(',') + "/export?from=" + startDateLocalUnixTimeSecs)
             .set('Content-Type', 'text/csv')
             .set('Connection', 'close')
             .end(function(err, res) {

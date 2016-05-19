@@ -3,14 +3,9 @@ var fs = require('fs');
 var path = require('path');
 var mkdirp = require('mkdirp');
 var flow = require('nimble');
-var tzwhere = require('tzwhere');
 
-// initialize the timezone lib
-console.log("Initializing timezone library...");
-tzwhere.init();
-console.log("Timezone library initialization complete.");
 
-function StatsGenerator() {
+function StatsGenerator(tzwhere) {
    this.generate = function(callback) {
       mkdirp(Common.STATS_DIRECTORY, function(err) {
          if (err) {
@@ -140,7 +135,8 @@ function StatsGenerator() {
             fs.writeFile(filePath, JSON.stringify(json, null, 1), function(err) {
                callback(err, !!err);
             });
-         } else {
+         }
+         else {
             console.log("   No data found, skipping stats generation");
             callback(null, true);
          }
