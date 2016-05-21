@@ -19,6 +19,7 @@
   "dependencies": {
     "bodytrack-datastore": "^2.6.0",
     "commander": "^2.9.0",
+    "log4js": "^0.6.36",
     "mkdirp": "^0.5.1",
     "nconf": "^0.8.4",
     "nimble": "0.0.2",

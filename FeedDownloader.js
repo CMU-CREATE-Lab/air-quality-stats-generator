@@ -4,6 +4,7 @@ var fs = require('fs');
 var path = require('path');
 var mkdirp = require('mkdirp');
 var flow = require('nimble');
+var log = require('log4js').getLogger('air-quality-stats-generator:feeddownloader');
 
 const GOVT_PM_2_5_CHANNEL_NAMES = [
    "PM2_5",
@@ -16,7 +17,7 @@ function FeedDownloader(tzwhere) {
    this.download = function(startDateUtcUnixTimeSecs, callback) {
       mkdirp(Common.DATA_DIRECTORY, function(err) {
          if (err) {
-            console.log("ERROR: failed to create data directory [" + Common.DATA_DIRECTORY + "]. Aborting.");
+            log.error("ERROR: failed to create data directory [" + Common.DATA_DIRECTORY + "]. Aborting.");
             process.exit(1);
          }
 
@@ -30,7 +31,7 @@ function FeedDownloader(tzwhere) {
                      callback(err);
                   }
                   else {
-                     console.log("Downloaded [" + feeds.length + "] feeds. ");
+                     log.info("Downloaded [" + feeds.length + "] feeds. ");
 
                      // Now export the feed data
                      exportFeeds(feeds, startDateUtcUnixTimeSecs, callback);
@@ -62,7 +63,7 @@ function FeedDownloader(tzwhere) {
          flow.series(exportCommands, callback);
       }
       else {
-         console.log("No feeds to export");
+         log.error("ERROR: No feeds to export");
          callback(new Error("No feeds to export"));
       }
    };
@@ -91,7 +92,7 @@ function FeedDownloader(tzwhere) {
             .end(function(err, res) {
                if (err) {
                   var msg = "ERROR: Failed to download data for feed [" + feed.id + "]. Skipping.";
-                  console.log(msg);
+                  log.error(msg);
                   done(new Error(msg));
                }
                else {
@@ -100,20 +101,20 @@ function FeedDownloader(tzwhere) {
                   fs.writeFile(dataFilePath, res.text, function(err) {
                      if (err) {
                         var msg = "ERROR: failed to write data file [" + dataFilePath + "]";
-                        console.log(msg);
+                        log.error(msg);
                         return done(new Error(msg));
                      }
                      else {
-                        console.log("Saved data file [" + dataFilePath + "] (" + channelsToExport.length + " column(s))");
+                        log.debug("Saved data file [" + dataFilePath + "] (" + channelsToExport.length + " column(s))");
                      }
                      fs.writeFile(metadataFilePath, JSON.stringify(feed, null, 3), function(err) {
                         if (err) {
                            var msg = "ERROR: failed to write metadata file [" + metadataFilePath + "]";
-                           console.log(msg);
+                           log.error(msg);
                            done(new Error(msg));
                         }
                         else {
-                           console.log("Saved metadata file [" + metadataFilePath + "]");
+                           log.debug("Saved metadata file [" + metadataFilePath + "]");
                            done(null, true);
                         }
                      });

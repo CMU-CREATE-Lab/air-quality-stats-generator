@@ -4,6 +4,12 @@ if (!RunMode.isValid()) {
    process.exit(1);
 }
 
+var log4js = require('log4js');
+log4js.configure('log4js-config-' + RunMode.get() + '.json');
+var log = log4js.getLogger('air-quality-stats-generator');
+log.info("Air Quality Stats Generator " + (new Date().toISOString()));
+log.info("Run Mode: " + RunMode.get());
+
 var config = require('./config');
 var pjson = require('./package.json');
 var Common = require('./Common.js');
@@ -30,41 +36,41 @@ if (typeof programOptions.days === 'undefined' || (programOptions.days != null &
    var deleteDir = require('rimraf');
    deleteDir(Common.DATA_DIRECTORY, function(err) {
       if (err) {
-         console.log("ERROR: failed to delete data directory [" + Common.DATA_DIRECTORY + "]. Aborting.");
+         log.error("ERROR: failed to delete data directory [" + Common.DATA_DIRECTORY + "]. Aborting.");
          process.exit(1);
       }
 
       deleteDir(Common.STATS_DIRECTORY, function(err) {
          if (err) {
-            console.log("ERROR: failed to delete stats directory [" + Common.STATS_DIRECTORY + "]. Aborting.");
+            log.error("ERROR: failed to delete stats directory [" + Common.STATS_DIRECTORY + "]. Aborting.");
             process.exit(1);
          }
 
          // load and initialize the timezone lib
          var tzwhere = require('tzwhere');
-         console.log("Initializing timezone library...");
+         log.debug("Initializing timezone library...");
          tzwhere.init();
-         console.log("Timezone library initialization complete.");
+         log.debug("Timezone library initialization complete.");
          
          // Start the downloader
          var FeedDownloader = require('./FeedDownloader');
          var downloader = new FeedDownloader(tzwhere);
          downloader.download(startDateUtcUnixTimeSecs, function(err, results) {
             if (err) {
-               console.log(err);
+               log.error(err);
             }
             else {
-               console.log("Downloaded " + results.length + " feeds.");
+               log.info("Downloaded " + results.length + " feeds.");
 
                // Start the stats generator
                var StatsGenerator = require('./StatsGenerator');
                var statsGenerator = new StatsGenerator(tzwhere);
                statsGenerator.generate(function(err, results) {
                   if (err) {
-                     console.log(err);
+                     log.error(err);
                   }
                   else {
-                     console.log("Generated stats for " + results.length + " feeds.");
+                     log.info("Generated stats for " + results.length + " feeds.");
 
                      // Import the stats back into the feeds
                      var FeedImporter = require('./FeedImporter');
@@ -75,10 +81,10 @@ if (typeof programOptions.days === 'undefined' || (programOptions.days != null &
 
                      feedImporter.import(function(err, results) {
                         if (err) {
-                           console.log(err);
+                           log.error(err);
                         }
                         else {
-                           console.log("All done! Imported " + results.length + " feeds.");
+                           log.info("All done! Imported " + results.length + " feeds.");
                         }
                      });
                   }
@@ -89,7 +95,7 @@ if (typeof programOptions.days === 'undefined' || (programOptions.days != null &
    });
 }
 else {
-   console.log("ERROR: Number of days must be a positive integer.");
+   log.error("ERROR: Number of days must be a positive integer.");
    process.exit(1);
 }
 

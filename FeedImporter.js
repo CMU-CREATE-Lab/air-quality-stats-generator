@@ -3,6 +3,7 @@ var fs = require('fs');
 var path = require('path');
 var flow = require('nimble');
 var BodyTrackDatastore = require('bodytrack-datastore');
+var log = require('log4js').getLogger('air-quality-stats-generator:feedimporter');
 
 // create the datastore instance we'll use for the remaining tests
 
@@ -16,28 +17,28 @@ function FeedImporter(config) {
             datastore = new BodyTrackDatastore(config.datastore);
          }
          catch (e) {
-            console.log("ERROR: failed to initialize datastore instance. Aborting. (" + e + ")");
+            log.error("ERROR: failed to initialize datastore instance. Aborting. (" + e + ")");
             process.exit(1);
          }
       }
       else {
-         console.log("ERROR: config.userId must be a positive integer. Aborting.");
+         log.error("ERROR: config.userId must be a positive integer. Aborting.");
          process.exit(1);
       }
    }
    else {
-      console.log("ERROR: Config not defined. Aborting.");
+      log.error("ERROR: Config not defined. Aborting.");
       process.exit(1);
    }
 
    this.import = function(callback) {
 
-      console.log("Importing feeds...");
+      log.debug("Importing feeds...");
       
       // iterate over each of the feed stats files, and create commands to import each one in turn
       fs.readdir(Common.STATS_DIRECTORY, function(err, files) {
          if (err) {
-            console.log("ERROR: failed to read file listing from the stats directory [" + Common.STATS_DIRECTORY + "]. Aborting.");
+            log.error("ERROR: failed to read file listing from the stats directory [" + Common.STATS_DIRECTORY + "]. Aborting.");
             process.exit(1);
          }
 
@@ -49,7 +50,7 @@ function FeedImporter(config) {
                commands.push(function(done) {
                   fs.readFile(path.join(Common.STATS_DIRECTORY, filename), 'utf8', function(err, statsJson) {
                      if (err) {
-                        console.log("   Error: " + err);
+                        log.error("   Error: " + err);
                         done(err);
                      }
 
@@ -66,7 +67,6 @@ function FeedImporter(config) {
                });
             }
          });
-         console.log("Running commands...");
          flow.series(commands, callback);
       });
 
@@ -74,7 +74,7 @@ function FeedImporter(config) {
 
    var importFeed = function(feedId, statsToImport, userId, callback) {
       var deviceName = "feed_" + feedId;
-      console.log("   Importing feed [" + feedId + "] into datastore device [" + deviceName + "] for user " + userId);
+      log.info("   Importing feed [" + feedId + "] into datastore device [" + deviceName + "] for user " + userId);
       datastore.importJson(userId, deviceName, statsToImport, callback);
    };
 }

@@ -1,0 +1,17 @@
+{
+   "replaceConsole": true,
+   "appenders" : [
+      {
+         "type" : "dateFile",
+         "filename" : "./logs/air-quality-stats-generator",
+         "pattern" : "-yyyy-MM-dd.log",
+         "alwaysIncludePattern" : true,
+         "layout" : {
+            "type" : "basic"
+         }
+      }
+   ],
+   "levels" : {
+      "[all]":"INFO"
+   }
+}

@@ -3,20 +3,21 @@ var fs = require('fs');
 var path = require('path');
 var mkdirp = require('mkdirp');
 var flow = require('nimble');
+var log = require('log4js').getLogger('air-quality-stats-generator:statsgenerator');
 
 
 function StatsGenerator(tzwhere) {
    this.generate = function(callback) {
       mkdirp(Common.STATS_DIRECTORY, function(err) {
          if (err) {
-            console.log("ERROR: failed to create stats directory [" + Common.STATS_DIRECTORY + "]. Aborting.");
+            log.error("ERROR: failed to create stats directory [" + Common.STATS_DIRECTORY + "]. Aborting.");
             process.exit(1);
          }
 
          // iterate over each of the feed data files
          fs.readdir(Common.DATA_DIRECTORY, function(err, files) {
             if (err) {
-               console.log("ERROR: failed to read file listing from the data directory [" + Common.DATA_DIRECTORY + "]. Aborting.");
+               log.error("ERROR: failed to read file listing from the data directory [" + Common.DATA_DIRECTORY + "]. Aborting.");
                process.exit(1);
             }
 
@@ -24,7 +25,7 @@ function StatsGenerator(tzwhere) {
             files.forEach(function(filename) {
                if (filename.indexOf('.json') > 0) {
                   commands.push(function(done) {
-                     console.log("Reading " + filename);
+                     log.debug("Reading " + filename);
                      fs.readFile(path.join(Common.DATA_DIRECTORY, filename), 'utf8', function(err, feedJson) {
                         if (err) {
                            done(err);
@@ -47,7 +48,7 @@ function StatsGenerator(tzwhere) {
 
    var computeStatsForFeed = function(feed, callback) {
 
-      console.log("Computing stats for feed " + feed.id + "...");
+      log.info("Computing stats for feed " + feed.id + "...");
 
       // start by reading all the data into an array
       readFeedData(feed, function(feedData) {
@@ -58,7 +59,7 @@ function StatsGenerator(tzwhere) {
             // the current year
             var startingYear = new Date(feedData.data[0].unixTimeMillis).getUTCFullYear();
             var endingYear = new Date().getUTCFullYear();
-            console.log("   Year range: " + startingYear + " - " + endingYear);
+            log.debug("   Year range: " + startingYear + " - " + endingYear);
 
             var recordIndex = 0;
             var json = { channel_names : [], data : [] };
@@ -72,7 +73,7 @@ function StatsGenerator(tzwhere) {
 
             // now iterate over each day of each year, and pick out data samples from feedData to compute max, average, and median
             for (var year = startingYear; year <= endingYear; year++) {
-               console.log("   Processing year " + year);
+               log.debug("   Processing year " + year);
                var dayNum = 0;
                var currentDayUtc = null;
                do {
@@ -114,7 +115,7 @@ function StatsGenerator(tzwhere) {
 
                   // see if this day has any records and, if so, compute the stats
                   if (recordsForCurrentDay.length > 0) {
-                     // console.log("Records for day: " + currentDayUtc.start.toUTCString() + " - " + currentDayUtc.end.toUTCString() + ": " + recordsForCurrentDay.length);
+                     // log.debug("Records for day: " + currentDayUtc.start.toUTCString() + " - " + currentDayUtc.end.toUTCString() + ": " + recordsForCurrentDay.length);
 
                      var stats = computeStatsForDay(currentDayLocal.noonMillis, recordsForCurrentDay);
 
@@ -122,11 +123,11 @@ function StatsGenerator(tzwhere) {
                   }
                   else {
                      // no records for this day, so there's nothing to do
-                     // console.log("Skipping day: " + currentDayUtc.start.toUTCString() + " - " + currentDayUtc.end.toUTCString());
+                     // log.debug("Skipping day: " + currentDayUtc.start.toUTCString() + " - " + currentDayUtc.end.toUTCString());
                   }
 
                   // var diffHours = (currentDayLocal.endMillis - currentDayLocal.startMillis) / 3600 / 1000;
-                  // console.log(currentDayUtc.start.toUTCString() + " - " + currentDayUtc.end.toUTCString() + " : [" + currentDayLocal.startMillis + "] - [" + currentDayLocal.endMillis + "] --> [" + diffHours + "]");
+                  // log.debug(currentDayUtc.start.toUTCString() + " - " + currentDayUtc.end.toUTCString() + " : [" + currentDayLocal.startMillis + "] - [" + currentDayLocal.endMillis + "] --> [" + diffHours + "]");
                }
                while (currentDayUtc.end.getUTCFullYear() == year);
             }
@@ -137,7 +138,7 @@ function StatsGenerator(tzwhere) {
             });
          }
          else {
-            console.log("   No data found, skipping stats generation");
+            log.info("   No data found, skipping stats generation");
             callback(null, true);
          }
       });
@@ -238,7 +239,7 @@ function StatsGenerator(tzwhere) {
       });
 
       rl.on('close', function() {
-         console.log("   Read " + feedData.data.length + " records for feed " + feed.id);
+         log.debug("   Read " + feedData.data.length + " records for feed " + feed.id);
          callback(feedData);
       });
    };
