@@ -9,9 +9,6 @@ config.argv().env();
 config.add('global', { type : 'file', file : configFile });
 
 config.defaults({
-                   "esdr" : {
-                      "feedOwnerUserId" : -1
-                   },
                    "datastore" : {
                       "binDir" : null,
                       "dataDir" : null

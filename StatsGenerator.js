@@ -5,7 +5,6 @@ var mkdirp = require('mkdirp');
 var flow = require('nimble');
 var log = require('log4js').getLogger('StatsGenerator');
 
-
 function StatsGenerator(tzwhere) {
    this.generate = function(callback) {
       mkdirp(Common.STATS_DIRECTORY, function(err) {
@@ -132,9 +131,19 @@ function StatsGenerator(tzwhere) {
                while (currentDayUtc.end.getUTCFullYear() == year);
             }
 
-            var filePath = path.join(Common.STATS_DIRECTORY, feed.id + ".json");
-            fs.writeFile(filePath, JSON.stringify(json, null, 1), function(err) {
-               callback(err, !!err);
+            // create a subdirectory for the userId, then save the stats file within (NOTE: path.join requires strings,
+            // so add the empty string to the feed user ID to convert to a string)
+            var feedUserDir = path.join(Common.STATS_DIRECTORY, '' + feed.userId);
+            mkdirp(feedUserDir, function(err) {
+               if (err) {
+                  log.error("ERROR: failed to create feed user stats directory [" + feedUserDir + "]. Aborting.");
+                  process.exit(1);
+               }
+
+               var filePath = path.join(feedUserDir, feed.id + ".json");
+               fs.writeFile(filePath, JSON.stringify(json, null, 1), function(err) {
+                  callback(err, !!err);
+               });
             });
          }
          else {

@@ -12,17 +12,11 @@ function FeedImporter(config) {
 
    // validate the config
    if (config) {
-      if (Common.isPositiveInt(config.userId)) {
-         try {
-            datastore = new BodyTrackDatastore(config.datastore);
-         }
-         catch (e) {
-            log.error("ERROR: failed to initialize datastore instance. Aborting. (" + e + ")");
-            process.exit(1);
-         }
+      try {
+         datastore = new BodyTrackDatastore(config.datastore);
       }
-      else {
-         log.error("ERROR: config.userId must be a positive integer. Aborting.");
+      catch (e) {
+         log.error("ERROR: failed to initialize datastore instance. Aborting. (" + e + ")");
          process.exit(1);
       }
    }
@@ -34,42 +28,54 @@ function FeedImporter(config) {
    this.import = function(callback) {
 
       log.debug("Importing feeds...");
-      
-      // iterate over each of the feed stats files, and create commands to import each one in turn
-      fs.readdir(Common.STATS_DIRECTORY, function(err, files) {
-         if (err) {
-            log.error("ERROR: failed to read file listing from the stats directory [" + Common.STATS_DIRECTORY + "]. Aborting.");
-            process.exit(1);
-         }
 
-         var commands = [];
-         files.forEach(function(filename) {
-            var suffixPosition = filename.indexOf('.json');
-            if (suffixPosition > 0) {
-               var feedId = filename.substr(0, suffixPosition);
-               commands.push(function(done) {
-                  fs.readFile(path.join(Common.STATS_DIRECTORY, filename), 'utf8', function(err, statsJson) {
-                     if (err) {
-                        log.error("   Error: " + err);
-                        done(err);
-                     }
+      // get a listing of all the feed userId directories within the stats directory
+      var userIdDirectoryNames = fs.readdirSync(Common.STATS_DIRECTORY);
 
-                     var statsToImport = null;
-                     try {
-                        statsToImport = JSON.parse(statsJson);
-                     }
-                     catch (e) {
-                        done(new Error("Failed to parse JSON for feed " + feedId));
-                     }
+      // iterate over the feed userId directories within the stats directory, creating commands to import the stats
+      // files within each
+      var commands = [];
+      userIdDirectoryNames.forEach(function(dirName) {
+         if (Common.isPositiveInt(dirName)) {
+            var userId = parseInt(dirName);
 
-                     importFeed(feedId, statsToImport, config.userId, done);
+            // get a listing of all the stats files for this user
+            var userIdDirectory = path.join(Common.STATS_DIRECTORY, dirName);
+            var files = fs.readdirSync(userIdDirectory);
+
+            // iterate over each of the feed stats files for this user, and create commands to import each one in turn
+            files.forEach(function(filename) {
+               var suffixPosition = filename.indexOf('.json');
+               if (suffixPosition > 0) {
+                  var feedId = filename.substr(0, suffixPosition);
+                  commands.push(function(done) {
+                     var statsFile = path.join(userIdDirectory, filename);
+                     fs.readFile(statsFile, 'utf8', function(err, statsJson) {
+                        if (err) {
+                           log.error("   Error: " + err);
+                           done(err);
+                        }
+
+                        var statsToImport = null;
+                        try {
+                           statsToImport = JSON.parse(statsJson);
+                        }
+                        catch (e) {
+                           done(new Error("Failed to parse JSON for feed " + feedId));
+                        }
+
+                        importFeed(feedId, statsToImport, userId, done);
+                     });
                   });
-               });
-            }
-         });
-         flow.series(commands, callback);
+               }
+            });
+         }
+         else {
+            log.warn("Skipping unexpected directory [" + dirName + "]. A feed user ID directory name must be a positive int.");
+         }
       });
 
+      flow.series(commands, callback);
    };
 
    var importFeed = function(feedId, statsToImport, userId, callback) {

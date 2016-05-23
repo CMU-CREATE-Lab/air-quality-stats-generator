@@ -24,7 +24,7 @@ function FeedDownloader(tzwhere) {
          // start by downloading the feed metadata
          Common.loadFeeds(
                function(offset, limit) {
-                  return Common.ESDR_API_ROOT_URL + "/multifeeds/pm_2_5/feeds?fields=id,name,minTimeSecs,maxTimeSecs,latitude,longitude,channelBounds&orderBy=id&limit=" + limit + "&offset=" + offset
+                  return Common.ESDR_API_ROOT_URL + "/multifeeds/pm_2_5/feeds?fields=id,name,userId,minTimeSecs,maxTimeSecs,latitude,longitude,channelBounds&orderBy=id&limit=" + limit + "&offset=" + offset
                },
                function(err, feeds) {
                   if (err) {
