@@ -3,7 +3,7 @@ var fs = require('fs');
 var path = require('path');
 var mkdirp = require('mkdirp');
 var flow = require('nimble');
-var log = require('log4js').getLogger('air-quality-stats-generator:statsgenerator');
+var log = require('log4js').getLogger('StatsGenerator');
 
 
 function StatsGenerator(tzwhere) {
@@ -48,7 +48,7 @@ function StatsGenerator(tzwhere) {
 
    var computeStatsForFeed = function(feed, callback) {
 
-      log.info("Computing stats for feed " + feed.id + "...");
+      log.debug("Computing stats for feed " + feed.id + "...");
 
       // start by reading all the data into an array
       readFeedData(feed, function(feedData) {
@@ -138,7 +138,7 @@ function StatsGenerator(tzwhere) {
             });
          }
          else {
-            log.info("   No data found, skipping stats generation");
+            log.debug("   No data found, skipping stats generation");
             callback(null, true);
          }
       });

@@ -6,7 +6,7 @@ if (!RunMode.isValid()) {
 
 var log4js = require('log4js');
 log4js.configure('log4js-config-' + RunMode.get() + '.json');
-var log = log4js.getLogger('air-quality-stats-generator');
+var log = log4js.getLogger('main');
 log.info("Air Quality Stats Generator " + (new Date().toISOString()));
 log.info("Run Mode: " + RunMode.get());
 
@@ -53,6 +53,7 @@ if (typeof programOptions.days === 'undefined' || (programOptions.days != null &
          log.debug("Timezone library initialization complete.");
          
          // Start the downloader
+         log.info("Downloading feeds...");
          var FeedDownloader = require('./FeedDownloader');
          var downloader = new FeedDownloader(tzwhere);
          downloader.download(startDateUtcUnixTimeSecs, function(err, results) {
@@ -63,6 +64,7 @@ if (typeof programOptions.days === 'undefined' || (programOptions.days != null &
                log.info("Downloaded " + results.length + " feeds.");
 
                // Start the stats generator
+               log.info("Computing stats...");
                var StatsGenerator = require('./StatsGenerator');
                var statsGenerator = new StatsGenerator(tzwhere);
                statsGenerator.generate(function(err, results) {
@@ -73,6 +75,7 @@ if (typeof programOptions.days === 'undefined' || (programOptions.days != null &
                      log.info("Generated stats for " + results.length + " feeds.");
 
                      // Import the stats back into the feeds
+                     log.info("Importing stats...");
                      var FeedImporter = require('./FeedImporter');
                      var feedImporter = new FeedImporter({
                         userId : config.get("esdr:feedOwnerUserId"),

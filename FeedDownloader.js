@@ -4,7 +4,7 @@ var fs = require('fs');
 var path = require('path');
 var mkdirp = require('mkdirp');
 var flow = require('nimble');
-var log = require('log4js').getLogger('air-quality-stats-generator:feeddownloader');
+var log = require('log4js').getLogger('FeedDownloader');
 
 const GOVT_PM_2_5_CHANNEL_NAMES = [
    "PM2_5",
@@ -31,7 +31,7 @@ function FeedDownloader(tzwhere) {
                      callback(err);
                   }
                   else {
-                     log.info("Downloaded [" + feeds.length + "] feeds. ");
+                     log.debug("Downloaded " + feeds.length + " feeds");
 
                      // Now export the feed data
                      exportFeeds(feeds, startDateUtcUnixTimeSecs, callback);

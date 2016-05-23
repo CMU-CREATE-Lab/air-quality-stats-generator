@@ -3,7 +3,7 @@ var fs = require('fs');
 var path = require('path');
 var flow = require('nimble');
 var BodyTrackDatastore = require('bodytrack-datastore');
-var log = require('log4js').getLogger('air-quality-stats-generator:feedimporter');
+var log = require('log4js').getLogger('FeedImporter');
 
 // create the datastore instance we'll use for the remaining tests
 
@@ -74,7 +74,7 @@ function FeedImporter(config) {
 
    var importFeed = function(feedId, statsToImport, userId, callback) {
       var deviceName = "feed_" + feedId;
-      log.info("   Importing feed [" + feedId + "] into datastore device [" + deviceName + "] for user " + userId);
+      log.debug("   Importing feed [" + feedId + "] into datastore device [" + deviceName + "] for user " + userId);
       datastore.importJson(userId, deviceName, statsToImport, callback);
    };
 }
