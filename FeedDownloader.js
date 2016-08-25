@@ -6,13 +6,6 @@ var mkdirp = require('mkdirp');
 var flow = require('nimble');
 var log = require('log4js').getLogger('FeedDownloader');
 
-const GOVT_PM_2_5_CHANNEL_NAMES = [
-   "PM2_5",
-   "PM25B_UG_M3",
-   "PM25_2__UG_M3",
-   "PM25_UG_M3"
-];
-
 function FeedDownloader(tzwhere) {
    this.download = function(startDateUtcUnixTimeSecs, callback) {
       mkdirp(Common.DATA_DIRECTORY, function(err) {
@@ -24,7 +17,7 @@ function FeedDownloader(tzwhere) {
          // start by downloading the feed metadata
          Common.loadFeeds(
                function(offset, limit) {
-                  return Common.ESDR_API_ROOT_URL + "/multifeeds/pm_2_5/feeds?fields=id,name,userId,minTimeSecs,maxTimeSecs,latitude,longitude,channelBounds&orderBy=id&limit=" + limit + "&offset=" + offset
+                  return Common.ESDR_API_ROOT_URL + "/multifeeds/pm_2_5_and_ozone/feeds?fields=id,name,userId,minTimeSecs,maxTimeSecs,latitude,longitude,channelBounds&orderBy=id&limit=" + limit + "&offset=" + offset
                },
                function(err, feeds) {
                   if (err) {
@@ -46,8 +39,8 @@ function FeedDownloader(tzwhere) {
          var startDateUtc = startDateUtcUnixTimeSecs ? new Date(startDateUtcUnixTimeSecs * 1000) : null;
          feeds.forEach(function(feed) {
             var channelsToExport = [];
-            for (var i = 0; i < GOVT_PM_2_5_CHANNEL_NAMES.length; i++) {
-               var channelName = GOVT_PM_2_5_CHANNEL_NAMES[i];
+            for (var i = 0; i < Common.PM_2_5_AND_OZONE_CHANNELS.length; i++) {
+               var channelName = Common.PM_2_5_AND_OZONE_CHANNELS[i];
                if (channelName in feed['channelBounds']['channels']) {
                   channelsToExport.push(channelName);
                }
