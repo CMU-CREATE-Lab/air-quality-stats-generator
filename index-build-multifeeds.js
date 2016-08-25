@@ -19,6 +19,11 @@ const OZONE = {
    channels : Common.OZONE_CHANNELS
 };
 
+const PM_2_5_AND_OZONE = {
+   name : "pm_2_5_and_ozone",
+   channels : Common.PM_2_5_AND_OZONE_CHANNELS
+};
+
 var buildMultifeedSpec = function(substance, done) {
    multifeedSpecBuilder.build(substance.name, FEDERAL_SENSOR_PRODUCT_IDS, substance.channels, function(err, specStr, numFeedsHavingDesiredChannel) {
       if (err) {
@@ -40,6 +45,9 @@ flow.series([
                },
                function(done) {
                   buildMultifeedSpec(OZONE, done);
+               },
+               function(done) {
+                  buildMultifeedSpec(PM_2_5_AND_OZONE, done);
                }
             ],
             function() {
