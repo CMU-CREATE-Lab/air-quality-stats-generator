@@ -1,6 +1,6 @@
 {
   "name": "air-quality-stats-generator",
-  "version": "1.4.0",
+  "version": "1.5.0",
   "description": "Scripts for generating daily stats from ESDR air quality feeds (Airnow, ACHD, etc.) and inserting the stats back into the ESDR feeds.",
   "main": "index.js",
   "scripts": {
