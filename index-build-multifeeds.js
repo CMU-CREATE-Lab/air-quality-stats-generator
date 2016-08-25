@@ -11,22 +11,12 @@ const FEDERAL_SENSOR_PRODUCT_IDS = [
 
 const PM_2_5 = {
    name : "pm_2_5",
-   channels : [
-      "PM2_5",
-      "PM25B_UG_M3",
-      "PM25_2__UG_M3",
-      "PM25_UG_M3"
-   ]
+   channels : Common.PM_2_5_CHANNELS
 };
 
 const OZONE = {
    name : "ozone",
-   channels : [
-      "OZONE",
-      "OZONE2_PPM",
-      "Ozone_O3",
-      "OZONE_PPM"
-   ]
+   channels : Common.OZONE_CHANNELS
 };
 
 var buildMultifeedSpec = function(substance, done) {

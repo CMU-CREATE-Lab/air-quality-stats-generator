@@ -3,6 +3,22 @@ var path = require('path');
 const ESDR_API_ROOT_URL = "http://esdr.cmucreatelab.org/api/v1";
 const ESDR_QUERY_ITEM_LIMIT = 1000;
 
+const PM_2_5_CHANNELS = [
+   "PM2_5",
+   "PM25B_UG_M3",
+   "PM25_2__UG_M3",
+   "PM25_UG_M3"
+];
+
+const OZONE_CHANNELS = [
+   "OZONE",
+   "OZONE2_PPM",
+   "Ozone_O3",
+   "OZONE_PPM"
+];
+
+const PM_2_5_AND_OZONE_CHANNELS = PM_2_5_CHANNELS.concat(OZONE_CHANNELS);
+
 const DATA_DIRECTORY = path.join(__dirname, 'data');
 const STATS_DIRECTORY = path.join(__dirname, 'stats');
 
@@ -86,7 +102,8 @@ var isPositiveInt = function(n) {
       var nStr = null;
       if (isString(n)) {
          nStr = n;
-      } else if (isNumber(n)) {
+      }
+      else if (isNumber(n)) {
          nStr = String(n);
       }
 
@@ -151,6 +168,9 @@ var computeMean = function(values) {
 
 module.exports.ESDR_API_ROOT_URL = ESDR_API_ROOT_URL;
 module.exports.ESDR_QUERY_ITEM_LIMIT = ESDR_QUERY_ITEM_LIMIT;
+module.exports.PM_2_5_CHANNELS = PM_2_5_CHANNELS;
+module.exports.OZONE_CHANNELS = OZONE_CHANNELS;
+module.exports.PM_2_5_AND_OZONE_CHANNELS = PM_2_5_AND_OZONE_CHANNELS;
 module.exports.DATA_DIRECTORY = DATA_DIRECTORY;
 module.exports.STATS_DIRECTORY = STATS_DIRECTORY;
 module.exports.DAILY_MAX_CHANNEL_NAME_SUFFIX = DAILY_MAX_CHANNEL_NAME_SUFFIX;
