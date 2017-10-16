@@ -86,6 +86,7 @@ function FeedDownloader(tzwhere) {
                if (err) {
                   var msg = "ERROR: Failed to download data for feed [" + feed.id + "]. Skipping.";
                   log.error(msg);
+                  log.error(err);
                   done(new Error(msg));
                }
                else {
